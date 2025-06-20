@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI研究所パズル Ver3.0 Ultimate - Dr.Claudeと究極の回路修復</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 背景エフェクト */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(0, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+    }
+
+    .particle.golden {
+      background: rgba(255, 215, 0, 0.7);
+      width: 6px;
+      height: 6px;
+      animation-duration: 15s;
+    }
+
+    @keyframes float {
+      from {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      to {
+        transform: translateY(-10vh) translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    .game-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      animation: title-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes title-glow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+
+    .version-badge {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      color: #ffff00;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    }
+
+    /* ランク表示 */
+    .rank-display {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 3em;
+      font-weight: bold;
+      text-shadow: 0 0 20px currentColor;
+      animation: rank-pulse 2s infinite;
+    }
+
+    .rank-display.rank-c { color: #888; }
+    .rank-display.rank-b { color: #0088ff; }
+    .rank-display.rank-a { color: #ff00ff; }
+    .rank-display.rank-s { color: #ffff00; }
+    .rank-display.rank-ss { 
+      background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: rainbow 2s linear infinite;
+    }
+
+    @keyframes rank-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    @keyframes rainbow {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    /* モード選択 */
+    .mode-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(0, 255, 255, 0.5);
+      color: #00ffff;
+      padding: 10px 15px;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9em;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(145deg, #00ffff, #0088cc);
+      color: #000;
+      font-weight: bold;
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+    }
+
+    .mode-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
+    }
+
+    /* 統計表示 */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+    }
+
+    .stat.highlight {
+      animation: stat-pulse 0.5s ease;
+    }
+
+    .stat.achievement-unlock {
+      background: linear-gradient(145deg, #ffff00, #ff8800);
+      color: #000;
+      animation: achievement-pop 1s ease;
+    }
+
+    @keyframes stat-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    @keyframes achievement-pop {
+      0% { transform: scale(0) rotate(-180deg); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .timer {
+      background: linear-gradient(145deg, #ff6b6b, #c92a2a);
+    }
+
+    .timer.warning {
+      animation: timer-warning 0.5s infinite;
+    }
+
+    @keyframes timer-warning {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+        transform: scale(1.05);
+      }
+    }
+
+    /* ゲームボード */
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      gap: 5px;
+      margin: 20px auto;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 15px;
+      position: relative;
+    }
+
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(145deg, #2a2a3e, #16161d);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+
+    .cell.selected {
+      background: linear-gradient(145deg, #00ffff, #0088cc);
+      transform: scale(1.15);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    .cell.hint {
+      animation: hint-glow 2s ease;
+    }
+
+    @keyframes hint-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 0, 0); }
+      50% { box-shadow: 0 0 30px rgba(255, 255, 0, 0.8); }
+    }
+
+    .cell.matched {
+      animation: match-dissolve 0.5s ease-out;
+    }
+
+    .cell.bomb-ready {
+      background: linear-gradient(145deg, #ff6b6b, #c92a2a);
+      animation: bomb-pulse 1s infinite;
+    }
+
+    .cell.super-bomb {
+      background: linear-gradient(145deg, #ff00ff, #9400d3);
+      animation: super-bomb-pulse 0.8s infinite;
+    }
+
+    .cell.ai-core {
+      background: linear-gradient(45deg, #ffff00, #ff00ff, #00ffff);
+      animation: ai-core-pulse 0.6s infinite;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+    }
+
+    @keyframes ai-core-pulse {
+      0% { 
+        transform: scale(1) rotate(0deg);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+      }
+      50% { 
+        transform: scale(1.2) rotate(180deg);
+        box-shadow: 0 0 50px rgba(255, 255, 255, 1);
+      }
+      100% { 
+        transform: scale(1) rotate(360deg);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    .cell.exploding {
+      animation: explode 0.6s ease-out;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1.15); }
+      to { transform: scale(1.25); }
+    }
+
+    @keyframes match-dissolve {
+      0% { transform: scale(1) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.5) rotate(180deg); opacity: 0.5; }
+      100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes bomb-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); }
+      50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255, 100, 0, 0.8); }
+    }
+
+    @keyframes super-bomb-pulse {
+      0%, 100% { 
+        transform: scale(1) rotate(0deg); 
+        box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+      }
+      50% { 
+        transform: scale(1.2) rotate(180deg); 
+        box-shadow: 0 0 50px rgba(255, 0, 255, 1);
+      }
+    }
+
+    @keyframes explode {
+      0% { 
+        transform: scale(1); 
+        opacity: 1; 
+      }
+      25% {
+        transform: scale(1.5);
+        box-shadow: 0 0 50px rgba(255, 255, 0, 1);
+      }
+      50% { 
+        transform: scale(2.5); 
+        opacity: 0.8; 
+        background: radial-gradient(circle, #ff0000, #ff6600);
+        box-shadow: 0 0 100px rgba(255, 100, 0, 1);
+      }
+      100% { 
+        transform: scale(0); 
+        opacity: 0; 
+      }
+    }
+
+    /* 連鎖表示 */
+    .combo-display {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4em;
+      font-weight: bold;
+      color: #ffff00;
+      text-shadow: 0 0 30px rgba(255, 255, 0, 0.8);
+      animation: combo-pop 1s ease-out;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .combo-display.mega {
+      font-size: 5em;
+      background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @keyframes combo-pop {
+      0% { 
+        transform: translate(-50%, -50%) scale(0) rotate(-180deg); 
+        opacity: 0;
+      }
+      50% { 
+        transform: translate(-50%, -50%) scale(1.5) rotate(0deg); 
+        opacity: 1;
+      }
+      100% { 
+        transform: translate(-50%, -100%) scale(1) rotate(0deg); 
+        opacity: 0;
+      }
+    }
+
+    /* 実績通知 */
+    .achievement-notification {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(145deg, #ffff00, #ff8800);
+      color: #000;
+      padding: 20px 40px;
+      border-radius: 15px;
+      font-size: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      animation: achievement-slide 3s ease;
+      z-index: 200;
+    }
+
+    @keyframes achievement-slide {
+      0% { 
+        transform: translateX(-50%) translateY(-200px);
+        opacity: 0;
+      }
+      20% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      80% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-50%) translateY(-200px);
+        opacity: 0;
+      }
+    }
+
+    /* Dr.Claude表示エリア */
+    .claude-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 15px;
+      padding: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .claude-avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(145deg, #00ffff, #0088cc);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5em;
+      animation: claude-idle 3s infinite ease-in-out;
+      position: relative;
+    }
+
+    .claude-avatar.excited {
+      animation: claude-excited 0.5s ease;
+    }
+
+    .claude-avatar.amazed {
+      animation: claude-amazed 1s ease;
+    }
+
+    @keyframes claude-idle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes claude-excited {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.2) rotate(-10deg); }
+      75% { transform: scale(1.2) rotate(10deg); }
+    }
+
+    @keyframes claude-amazed {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.3) rotate(360deg); }
+      50% { transform: scale(1.5) rotate(720deg); }
+      100% { transform: scale(1) rotate(1080deg); }
+    }
+
+    .message {
+      flex: 1;
+      font-size: 1.1em;
+      line-height: 1.4;
+      transition: all 0.3s ease;
+    }
+
+    .message.highlight {
+      animation: message-flash 0.5s ease;
+    }
+
+    @keyframes message-flash {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); color: #ffff00; }
+    }
+
+    /* コントロール */
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: linear-gradient(145deg, #00ffff, #0088cc);
+      color: #000;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+
+    button:active {
+      transform: translateY(-1px);
+    }
+
+    button:before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:active:before {
+      width: 300px;
+      height: 300px;
+    }
+
+    /* サウンドボタン */
+    .sound-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(0, 255, 255, 0.5);
+      color: #00ffff;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      z-index: 100;
+    }
+
+    .sound-toggle:hover {
+      transform: scale(1.1);
+      background: rgba(0, 255, 255, 0.3);
+    }
+
+    /* ミッション表示 */
+    .mission-display {
+      background: rgba(255, 255, 0, 0.1);
+      border: 2px solid rgba(255, 255, 0, 0.5);
+      border-radius: 10px;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      display: none;
+    }
+
+    .mission-display.active {
+      display: block;
+      animation: mission-appear 0.5s ease;
+    }
+
+    @keyframes mission-appear {
+      from { 
+        transform: translateY(-20px); 
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0); 
+        opacity: 1;
+      }
+    }
+
+    /* 画面エフェクト */
+    .screen-flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0);
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    .screen-flash.active {
+      animation: flash 0.3s ease;
+    }
+
+    .screen-flash.rainbow {
+      animation: rainbow-flash 0.5s ease;
+    }
+
+    @keyframes flash {
+      0%, 100% { background: rgba(255, 255, 255, 0); }
+      50% { background: rgba(255, 255, 255, 0.5); }
+    }
+
+    @keyframes rainbow-flash {
+      0% { background: rgba(255, 0, 0, 0); }
+      20% { background: rgba(255, 0, 0, 0.5); }
+      40% { background: rgba(255, 255, 0, 0.5); }
+      60% { background: rgba(0, 255, 0, 0.5); }
+      80% { background: rgba(0, 255, 255, 0.5); }
+      100% { background: rgba(255, 0, 255, 0); }
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 600px) {
+      .game-board {
+        grid-template-columns: repeat(8, 40px);
+        grid-template-rows: repeat(8, 40px);
+      }
+      
+      .cell {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      
+      h1 {
+        font-size: 1.8em;
+      }
+      
+      .rank-display {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- パーティクル背景 -->
+  <div class="particles" id="particles"></div>
+  
+  <!-- 画面フラッシュエフェクト -->
+  <div class="screen-flash" id="screenFlash"></div>
+  
+  <!-- サウンドトグル -->
+  <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</div>
+  
+  <div class="game-container">
+    <!-- ランク表示 -->
+    <div class="rank-display rank-c" id="rankDisplay">C</div>
+    
+    <h1>AI研究所パズル</h1>
+    <div class="version-badge">Ver 3.0 - Ultimate Evolution</div>
+    
+    <!-- モード選択 -->
+    <div class="mode-selector">
+      <button class="mode-btn active" onclick="setMode('normal', event)">🎮 ノーマル</button>
+      <button class="mode-btn" onclick="setMode('time', event)">⏱️ タイムアタック</button>
+      <button class="mode-btn" onclick="setMode('mission', event)">🎯 ミッション</button>
+      <button class="mode-btn" onclick="setMode('endless', event)">♾️ エンドレス</button>
+      <button class="mode-btn" onclick="setMode('puzzle', event)">🧩 パズル</button>
+    </div>
+    
+    <!-- ミッション表示 -->
+    <div class="mission-display" id="missionDisplay"></div>
+    
+    <div class="stats">
+      <div class="stat">🎯 スコア: <span id="score">0</span></div>
+      <div class="stat">🔄 移動数: <span id="moves">0</span></div>
+      <div class="stat">💣 爆弾: <span id="bombs">0</span></div>
+      <div class="stat">💎 AIコア: <span id="cores">0</span></div>
+      <div class="stat timer" id="timerStat" style="display: none;">⏱️ <span id="timer">60</span>秒</div>
+      <div class="stat">🔥 最大連鎖: <span id="maxCombo">0</span></div>
+      <div class="stat" id="achievementStat">🏆 実績: <span id="achievements">0</span>/10</div>
+    </div>
+    
+    <div class="game-board" id="gameBoard"></div>
+    
+    <!-- Dr.Claude エリア -->
+    <div class="claude-area">
+      <div class="claude-avatar" id="claudeAvatar">🤖</div>
+      <div class="message" id="message">Dr.Claude: Ver3.0へようこそ！究極の進化を体験してくれ</div>
+    </div>
+    
+    <div class="controls">
+      <button onclick="initGame()">🔄 新しいゲーム</button>
+      <button onclick="showHint()">💡 ヒント</button>
+      <button onclick="showAchievements()">🏆 実績</button>
+    </div>
+  </div>
+
+  <script>
+    // ゲーム定数
+    const symbols = ['⚡', '🔋', '💾', '🧠'];
+    const bombSymbol = '💣';
+    const superBombSymbol = '💥';
+    const aiCoreSymbol = '💎';
+    const gridSize = 8;
+    
+    // ゲーム状態
+    let board = [];
+    let selectedCell = null;
+    let score = 0;
+    let moves = 0;
+    let bombCount = 0;
+    let coreCount = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let currentRank = 'C';
+    let isAnimating = false;
+    let soundEnabled = true;
+    let gameMode = 'normal';
+    let timeLeft = 60;
+    let timerInterval = null;
+    let missionComplete = false;
+    let puzzleMoves = 20; // パズルモードの手数制限
+    
+    // 実績システム
+    const achievements = {
+      firstBomb: { name: "爆弾製造者", desc: "初めて爆弾を作成", unlocked: false },
+      firstCore: { name: "AIコア覚醒", desc: "初めてAIコアを生成", unlocked: false },
+      combo10: { name: "連鎖マスター", desc: "10連鎖達成", unlocked: false },
+      score1000: { name: "千点突破", desc: "スコア1000点達成", unlocked: false },
+      score5000: { name: "五千点の壁", desc: "スコア5000点達成", unlocked: false },
+      rankS: { name: "Sランクプレイヤー", desc: "Sランク到達", unlocked: false },
+      rankSS: { name: "究極の証明", desc: "SSランク到達", unlocked: false },
+      bomb10: { name: "爆発狂", desc: "一度に10個の爆弾保持", unlocked: false },
+      perfectClear: { name: "完全制覇", desc: "全マス同時消去", unlocked: false },
+      speedster: { name: "光速の指", desc: "タイムアタックで3000点", unlocked: false }
+    };
+    
+    // サウンドコンテキスト
+    let audioContext = null;
+    
+    // ミッション定義
+    const missions = [
+      { id: 1, text: "💣 爆弾を5個作成せよ！", target: 5, type: 'bomb' },
+      { id: 2, text: "🎯 スコア1000点を達成せよ！", target: 1000, type: 'score' },
+      { id: 3, text: "🔥 7連鎖を達成せよ！", target: 7, type: 'combo' },
+      { id: 4, text: "💎 AIコアを2個作成せよ！", target: 2, type: 'core' },
+      { id: 5, text: "⚡ 電気シンボルを50個消去せよ！", target: 50, type: 'symbol' }
+    ];
+    let currentMission = null;
+    let symbolsCleared = 0;
+
+    // Dr.Claudeのセリフ（Ver3.0拡張版）
+    const claudeLines = {
+      start: [
+        "Ver3.0へようこそ！究極の進化を体験してくれ",
+        "新たなAIコアシステムが君を待っている",
+        "ランクSSを目指せるのは選ばれし者だけだ"
+      ],
+      match: [
+        "素晴らしい！この調子で回路を安定化させよう",
+        "論理的思考が光っているね。さすがだ",
+        "エネルギー効率が向上した。君のおかげだ"
+      ],
+      chain: [
+        "連鎖反応だ！これぞシステムの美しさ！",
+        "予想以上の効果...君の直感は正確だったようだ",
+        "まさに芸術的な連鎖だ！私の計算を超えている"
+      ],
+      megaChain: [
+        "${combo}連鎖！？これは研究所の新記録だ！",
+        "信じられない...${combo}連鎖とは！君は天才か！",
+        "${combo}連鎖達成！もはや人間の領域を超えている！"
+      ],
+      bombCreate: [
+        "これは爆発的進展だ！エネルギー爆弾の生成に成功した！",
+        "4つの回路が完全同期...これは予想以上の出力だ！",
+        "爆弾生成！戦略的に使えば大きな成果が期待できる"
+      ],
+      bombDetonate: [
+        "驚異的な連鎖反応！これぞ科学の力だ！",
+        "爆発範囲の計算が完璧だった...まさに天才的だ！",
+        "この破壊力...まるで小さなビッグバンだ！"
+      ],
+      superBomb: [
+        "スーパー爆弾の生成に成功！破壊力は計測不能だ！",
+        "これは...予想を超えた威力だ！慎重に扱ってくれ",
+        "究極兵器の誕生だ！君の才能に脱帽だ"
+      ],
+      aiCore: [
+        "なんと！AIコアの生成に成功した！これは歴史的瞬間だ！",
+        "5つ揃えるとは...君の能力は規格外だ！",
+        "AIコア起動！全システムに知性が宿る！",
+        "これが...人工知能の結晶...美しい..."
+      ],
+      aiCoreUse: [
+        "AIコア発動！全回路が共鳴している！",
+        "凄まじいエネルギー！画面全体が浄化される！",
+        "これがAIの真の力...システム全体が進化した！"
+      ],
+      rankUp: [
+        "ランクアップ！君の成長速度は驚異的だ！",
+        "${rank}ランク到達！素晴らしい進歩だ！",
+        "新たな高みへ！${rank}ランクおめでとう！"
+      ],
+      rankS: [
+        "Sランク！？君は本物のマスターだ！",
+        "ついにSランクか...感動的だ！",
+        "伝説の領域へようこそ！Sランク達成！"
+      ],
+      rankSS: [
+        "SSランク...！？こ、これは...！",
+        "信じられない...SSランクを見る日が来るとは！",
+        "君は...究極の存在だ！SSランク達成！",
+        "私のデータベースを超越した...君こそが未来だ！"
+      ],
+      achievement: [
+        "実績解除！『${name}』おめでとう！",
+        "新たな称号を獲得！『${name}』",
+        "素晴らしい！実績『${name}』を達成した！"
+      ],
+      hint: [
+        "ここに可能性を感じる...見逃さないで！",
+        "私のアルゴリズムが最適解を見つけた",
+        "この配置なら...そう、そこだ！"
+      ],
+      noMatch: [
+        "その移動では揃わないよ。別の戦略を試してみよう",
+        "惜しい！でも諦めないで、次は必ず成功する",
+        "エネルギーの流れが違う...もう一度考えてみよう"
+      ],
+      missionComplete: [
+        "ミッション完了！君は本当に優秀だ！",
+        "目標達成！これで研究所は救われた！",
+        "完璧だ！次のミッションも期待している！"
+      ],
+      endless: [
+        "エンドレスモード！どこまで行けるか見せてくれ！",
+        "限界への挑戦...君の真価が問われる！",
+        "無限の可能性...どこまで続けられるか？"
+      ],
+      puzzle: [
+        "パズルモード開始！${moves}手でクリアできるか？",
+        "限られた手数で最高効率を目指せ！",
+        "戦略的思考が試される...頑張って！"
+      ]
+    };
+
+    // 初期化関数
+    function initGame() {
+      board = [];
+      score = 0;
+      moves = 0;
+      bombCount = 0;
+      coreCount = 0;
+      combo = 0;
+      maxCombo = 0;
+      currentRank = 'C';
+      selectedCell = null;
+      isAnimating = false;
+      missionComplete = false;
+      symbolsCleared = 0;
+      puzzleMoves = 20;
+      
+      // タイマーリセット
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      
+      // モード別初期化
+      setupGameMode();
+      
+      // ボード生成
+      generateBoard();
+      
+      // パーティクル生成
+      createParticles();
+      
+      // 表示更新
+      renderBoard();
+      updateStats();
+      updateRank();
+      
+      // 初期メッセージ
+      if (gameMode === 'endless') {
+        speakClaude('endless');
+      } else if (gameMode === 'puzzle') {
+        speakClaude('puzzle', { moves: puzzleMoves });
+      } else {
+        speakClaude('start');
+      }
+    }
+
+    // ゲームモード設定
+    function setupGameMode() {
+      const timerStat = document.getElementById('timerStat');
+      const missionDisp = document.getElementById('missionDisplay');
+      
+      switch(gameMode) {
+        case 'time':
+          timeLeft = 60;
+          startTimer();
+          timerStat.style.display = 'block';
+          missionDisp.classList.remove('active');
+          break;
+          
+        case 'mission':
+          currentMission = missions[Math.floor(Math.random() * missions.length)];
+          missionDisp.textContent = currentMission.text;
+          missionDisp.classList.add('active');
+          timerStat.style.display = 'none';
+          break;
+          
+        case 'endless':
+          timerStat.style.display = 'none';
+          missionDisp.classList.remove('active');
+          break;
+          
+        case 'puzzle':
+          puzzleMoves = 20;
+          timerStat.style.display = 'none';
+          missionDisp.textContent = `残り ${puzzleMoves} 手`;
+          missionDisp.classList.add('active');
+          break;
+          
+        default:
+          timerStat.style.display = 'none';
+          missionDisp.classList.remove('active');
+      }
+    }
+
+    // ボード生成
+    function generateBoard() {
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        board[i] = symbols[Math.floor(Math.random() * symbols.length)];
+      }
+      
+      // 初期マッチを除去
+      while (findAllMatches().matches.length > 0) {
+        const { matches } = findAllMatches();
+        matches.forEach(idx => {
+          board[idx] = symbols[Math.floor(Math.random() * symbols.length)];
+        });
+      }
+    }
+
+    // パーティクル生成（強化版）
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      particlesContainer.innerHTML = '';
+      
+      // 通常パーティクル
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+        particlesContainer.appendChild(particle);
+      }
+      
+      // ゴールドパーティクル（ランクS以上で追加）
+      if (currentRank === 'S' || currentRank === 'SS') {
+        for (let i = 0; i < 10; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle golden';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 15 + 's';
+          particlesContainer.appendChild(particle);
+        }
+      }
+    }
+
+    // Dr.Claude表示（拡張版）
+    function speakClaude(type, params = {}) {
+      const lines = claudeLines[type];
+      if (!lines) return;
+      
+      let msg;
+      if (type === 'megaChain') {
+        msg = lines[Math.floor(Math.random() * lines.length)].replace('${combo}', combo);
+      } else if (type === 'rankUp') {
+        msg = lines[Math.floor(Math.random() * lines.length)].replace('${rank}', currentRank);
+      } else if (type === 'achievement') {
+        msg = lines[0].replace('${name}', params.name);
+      } else if (type === 'puzzle') {
+        msg = lines[0].replace('${moves}', params.moves);
+      } else {
+        msg = lines[Math.floor(Math.random() * lines.length)];
+      }
+      
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = `Dr.Claude: ${msg}`;
+      
+      const avatar = document.getElementById('claudeAvatar');
+      messageEl.classList.add('highlight');
+      
+      // 感情表現
+      if (type === 'rankSS' || type === 'aiCore' || combo > 10) {
+        avatar.classList.add('amazed');
+      } else {
+        avatar.classList.add('excited');
+      }
+      
+      setTimeout(() => {
+        messageEl.classList.remove('highlight');
+        avatar.classList.remove('excited', 'amazed');
+      }, 1000);
+    }
+
+    // ランク更新
+    function updateRank() {
+      const oldRank = currentRank;
+      
+      if (score >= 10000) {
+        currentRank = 'SS';
+      } else if (score >= 5000) {
+        currentRank = 'S';
+      } else if (score >= 2000) {
+        currentRank = 'A';
+      } else if (score >= 1000) {
+        currentRank = 'B';
+      } else {
+        currentRank = 'C';
+      }
+      
+      const rankDisplay = document.getElementById('rankDisplay');
+      rankDisplay.textContent = currentRank;
+      rankDisplay.className = `rank-display rank-${currentRank.toLowerCase()}`;
+      
+      // ランクアップ時の処理（SSランクのみレインボー演出）
+      if (oldRank !== currentRank) {
+        if (currentRank === 'SS') {
+          speakClaude('rankSS');
+          unlockAchievement('rankSS');
+          // レインボーフラッシュ（SSランク限定）
+          document.getElementById('screenFlash').classList.add('rainbow');
+          setTimeout(() => {
+            document.getElementById('screenFlash').classList.remove('rainbow');
+          }, 500);
+        } else if (currentRank === 'S') {
+          speakClaude('rankS');
+          unlockAchievement('rankS');
+        } else {
+          speakClaude('rankUp');
+        }
+        
+        // パーティクル再生成
+        createParticles();
+      }
+    }
+
+    // 実績解除
+    function unlockAchievement(key) {
+      if (!achievements[key].unlocked) {
+        achievements[key].unlocked = true;
+        speakClaude('achievement', { name: achievements[key].name });
+        
+        // 通知表示
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.textContent = `🏆 実績解除: ${achievements[key].name}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+        
+        updateStats();
+      }
+    }
+
+    // 統計更新
+    function updateStats() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('moves').textContent = moves;
+      document.getElementById('bombs').textContent = bombCount;
+      document.getElementById('cores').textContent = coreCount;
+      document.getElementById('maxCombo').textContent = maxCombo;
+      
+      // 実績カウント
+      const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
+      document.getElementById('achievements').textContent = unlockedCount;
+      
+      // ミッションチェック
+      checkMission();
+      
+      // 実績チェック
+      checkAchievements();
+      
+      // パズルモードの残り手数
+      if (gameMode === 'puzzle') {
+        document.getElementById('missionDisplay').textContent = `残り ${puzzleMoves} 手`;
+        if (puzzleMoves <= 0) {
+          endGame();
+        }
+      }
+    }
+
+    // ミッションチェック
+    function checkMission() {
+      if (gameMode !== 'mission' || !currentMission || missionComplete) return;
+      
+      let complete = false;
+      switch(currentMission.type) {
+        case 'bomb':
+          complete = bombCount >= currentMission.target;
+          break;
+        case 'score':
+          complete = score >= currentMission.target;
+          break;
+        case 'combo':
+          complete = maxCombo >= currentMission.target;
+          break;
+        case 'core':
+          complete = coreCount >= currentMission.target;
+          break;
+        case 'symbol':
+          complete = symbolsCleared >= currentMission.target;
+          break;
+      }
+      
+      if (complete) {
+        missionComplete = true;
+        speakClaude('missionComplete');
+        document.getElementById('missionDisplay').style.background = 'rgba(0, 255, 0, 0.2)';
+        score += 1000; // ボーナススコア
+        updateStats();
+        updateRank();
+      }
+    }
+
+    // 実績チェック
+    function checkAchievements() {
+      if (score >= 1000) unlockAchievement('score1000');
+      if (score >= 5000) unlockAchievement('score5000');
+      if (maxCombo >= 10) unlockAchievement('combo10');
+      if (bombCount >= 10) unlockAchievement('bomb10');
+      if (gameMode === 'time' && score >= 3000) unlockAchievement('speedster');
+    }
+
+    // サウンド関連（iOS対応強化）
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      // iOS対応: ユーザーインタラクション後にresume
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled || !audioContext) return;
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      switch(type) {
+        case 'match':
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          break;
+          
+        case 'bomb':
+          oscillator.frequency.setValueAtTime(110, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          break;
+          
+        case 'explode':
+          oscillator.type = 'sawtooth';
+          oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2);
+          gainNode.gain.setValueAtTime(0.6, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+          break;
+          
+        case 'combo':
+          oscillator.frequency.setValueAtTime(440 * Math.pow(2, combo/12), audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+          break;
+          
+        case 'aicore':
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+          oscillator.frequency.exponentialRampToValueAtTime(1760, audioContext.currentTime + 0.5);
+          gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          break;
+      }
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+      if (soundEnabled) initAudio();
+    }
+
+    // モード設定（event引数を明示的に受け取る）
+    function setMode(mode, event) {
+      gameMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      if (event && event.target) {
+        event.target.classList.add('active');
+      }
+      initGame();
+    }
+
+    // タイマー
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        
+        const timerEl = document.querySelector('.timer');
+        if (timeLeft <= 10) {
+          timerEl.classList.add('warning');
+        }
+        
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      isAnimating = true;
+      let message = `ゲーム終了！\n\n`;
+      message += `最終スコア: ${score}\n`;
+      message += `最終ランク: ${currentRank}\n`;
+      message += `最大連鎖: ${maxCombo}\n`;
+      
+      if (gameMode === 'mission' && missionComplete) {
+        message += '\n✨ ミッション成功！';
+      }
+      
+      const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
+      message += `\n\n🏆 実績: ${unlockedCount}/10`;
+      
+      speakClaude('highscore');
+      
+      setTimeout(() => {
+        alert(message);
+        isAnimating = false;
+      }, 1000);
+    }
+
+    // ボード描画
+    function renderBoard() {
+      const gameBoard = document.getElementById('gameBoard');
+      gameBoard.innerHTML = '';
+      
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        
+        if (board[i] === bombSymbol) {
+          cell.classList.add('bomb-ready');
+        } else if (board[i] === superBombSymbol) {
+          cell.classList.add('super-bomb');
+        } else if (board[i] === aiCoreSymbol) {
+          cell.classList.add('ai-core');
+        }
+        
+        cell.textContent = board[i] || '';
+        cell.onclick = () => cellClick(i);
+        gameBoard.appendChild(cell);
+      }
+    }
+
+    // セルクリック
+    function cellClick(index) {
+      if (isAnimating || !board[index]) return;
+      
+      // 特殊ピースのクリック処理
+      if (board[index] === bombSymbol || board[index] === superBombSymbol) {
+        detonateBomb(index, board[index] === superBombSymbol);
+        return;
+      } else if (board[index] === aiCoreSymbol) {
+        activateAICore(index);
+        return;
+      }
+      
+      const cells = document.querySelectorAll('.cell');
+      
+      if (selectedCell === null) {
+        selectedCell = index;
+        cells[index].classList.add('selected');
+        playSound('match');
+      } else if (selectedCell === index) {
+        cells[index].classList.remove('selected');
+        selectedCell = null;
+      } else if (isAdjacent(selectedCell, index)) {
+        cells[selectedCell].classList.remove('selected');
+        swapCells(selectedCell, index);
+        selectedCell = null;
+      } else {
+        cells[selectedCell].classList.remove('selected');
+        selectedCell = index;
+        cells[index].classList.add('selected');
+        playSound('match');
+      }
+    }
+
+    // AIコア起動（安全性強化）
+    function activateAICore(index) {
+      if (isAnimating) return;
+      isAnimating = true;
+      
+      // 隣接セルから有効なシンボルを探す（undefined対策）
+      let symbol = null;
+      const adjacentIndices = [
+        index - 1, // 左
+        index + 1, // 右
+        index - gridSize, // 上
+        index + gridSize // 下
+      ];
+      
+      // 有効な隣接セルのシンボルを取得
+      for (const adjIdx of adjacentIndices) {
+        if (adjIdx >= 0 && adjIdx < board.length && board[adjIdx] && 
+            board[adjIdx] !== bombSymbol && board[adjIdx] !== superBombSymbol && board[adjIdx] !== aiCoreSymbol) {
+          symbol = board[adjIdx];
+          break;
+        }
+      }
+      
+      // 有効なシンボルが見つからない場合は最初の通常シンボルを使用
+      if (!symbol) {
+        for (const sym of symbols) {
+          if (board.includes(sym)) {
+            symbol = sym;
+            break;
+          }
+        }
+      }
+      
+      const toRemove = [];
+      
+      // 画面上の同じシンボルを全て収集
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === symbol) {
+          toRemove.push(i);
+        }
+      }
+      
+      // AIコア自身も削除
+      toRemove.push(index);
+      
+      speakClaude('aiCoreUse');
+      playSound('aicore');
+      coreCount--;
+      
+      // レインボーフラッシュ
+      document.getElementById('screenFlash').classList.add('rainbow');
+      
+      // 全て消去アニメーション
+      const cells = document.querySelectorAll('.cell');
+      toRemove.forEach(idx => cells[idx].classList.add('exploding'));
+      
+      setTimeout(() => {
+        document.getElementById('screenFlash').classList.remove('rainbow');
+        toRemove.forEach(idx => board[idx] = null);
+        score += toRemove.length * 50;
+        updateStats();
+        updateRank();
+        dropPieces();
+        
+        // 全消しチェック
+        if (toRemove.length > 20) {
+          unlockAchievement('perfectClear');
+        }
+        
+        setTimeout(() => {
+          const newMatches = findAllMatches();
+          if (newMatches.matches.length > 0) {
+            processMatches();
+          } else {
+            isAnimating = false;
+          }
+        }, 500);
+      }, 600);
+    }
+
+    // ヒント機能
+    function showHint() {
+      if (isAnimating) return;
+      
+      const validMoves = findValidMoves();
+      if (validMoves.length > 0) {
+        const hint = validMoves[Math.floor(Math.random() * validMoves.length)];
+        const cells = document.querySelectorAll('.cell');
+        cells[hint.from].classList.add('hint');
+        cells[hint.to].classList.add('hint');
+        speakClaude('hint');
+        
+        setTimeout(() => {
+          cells[hint.from].classList.remove('hint');
+          cells[hint.to].classList.remove('hint');
+        }, 2000);
+      }
+    }
+
+    // 実績表示
+    function showAchievements() {
+      let message = "🏆 実績一覧 🏆\n\n";
+      
+      for (const [key, achievement] of Object.entries(achievements)) {
+        const status = achievement.unlocked ? "✅" : "❌";
+        message += `${status} ${achievement.name}\n   ${achievement.desc}\n\n`;
+      }
+      
+      alert(message);
+    }
+
+    // 有効な移動を探す
+    function findValidMoves() {
+      const moves = [];
+      
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        
+        // 右と交換
+        if (col < gridSize - 1) {
+          [board[i], board[i + 1]] = [board[i + 1], board[i]];
+          if (findAllMatches().matches.length > 0) {
+            moves.push({ from: i, to: i + 1 });
+          }
+          [board[i], board[i + 1]] = [board[i + 1], board[i]];
+        }
+        
+        // 下と交換
+        if (row < gridSize - 1) {
+          [board[i], board[i + gridSize]] = [board[i + gridSize], board[i]];
+          if (findAllMatches().matches.length > 0) {
+            moves.push({ from: i, to: i + gridSize });
+          }
+          [board[i], board[i + gridSize]] = [board[i + gridSize], board[i]];
+        }
+      }
+      
+      return moves;
+    }
+
+    // 隣接チェック
+    function isAdjacent(i1, i2) {
+      const r1 = Math.floor(i1 / gridSize), c1 = i1 % gridSize;
+      const r2 = Math.floor(i2 / gridSize), c2 = i2 % gridSize;
+      return (Math.abs(r1 - r2) + Math.abs(c1 - c2)) === 1;
+    }
+
+    // セル交換
+    function swapCells(i1, i2) {
+      isAnimating = true;
+      [board[i1], board[i2]] = [board[i2], board[i1]];
+      renderBoard();
+      
+      const { matches } = findAllMatches();
+      
+      if (matches.length > 0) {
+        moves++;
+        if (gameMode === 'puzzle') puzzleMoves--;
+        updateStats();
+        setTimeout(() => {
+          processMatches();
+        }, 300);
+      } else {
+        setTimeout(() => {
+          [board[i1], board[i2]] = [board[i2], board[i1]];
+          renderBoard();
+          speakClaude('noMatch');
+          isAnimating = false;
+        }, 300);
+      }
+    }
+
+    // マッチ検出（スーパー爆弾生成ロジック修正）
+    function findAllMatches() {
+      const matches = new Set();
+      const bombCreations = [];
+      const superBombCreations = [];
+      const aiCoreCreations = [];
+      
+      // 横方向
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col <= gridSize - 3; col++) {
+          const idx = row * gridSize + col;
+          const val = board[idx];
+          if (val && val !== bombSymbol && val !== superBombSymbol && val !== aiCoreSymbol) {
+            let matchLength = 1;
+            
+            while (col + matchLength < gridSize && board[idx + matchLength] === val) {
+              matchLength++;
+            }
+            
+            if (matchLength >= 3) {
+              for (let i = 0; i < matchLength; i++) {
+                matches.add(idx + i);
+              }
+              
+              // 5つ以上でAIコア、4つで爆弾を生成位置に記録
+              if (matchLength >= 5) {
+                aiCoreCreations.push(idx + Math.floor(matchLength / 2));
+              } else if (matchLength === 4) {
+                bombCreations.push(idx + Math.floor(matchLength / 2));
+              }
+              
+              col += matchLength - 1;
+            }
+          }
+        }
+      }
+      
+      // 縦方向
+      for (let col = 0; col < gridSize; col++) {
+        for (let row = 0; row <= gridSize - 3; row++) {
+          const idx = row * gridSize + col;
+          const val = board[idx];
+          if (val && val !== bombSymbol && val !== superBombSymbol && val !== aiCoreSymbol) {
+            let matchLength = 1;
+            
+            while (row + matchLength < gridSize && board[(row + matchLength) * gridSize + col] === val) {
+              matchLength++;
+            }
+            
+            if (matchLength >= 3) {
+              for (let i = 0; i < matchLength; i++) {
+                matches.add((row + i) * gridSize + col);
+              }
+              
+              // 5つ以上でAIコア、4つで爆弾を生成位置に記録
+              if (matchLength >= 5) {
+                aiCoreCreations.push((row + Math.floor(matchLength / 2)) * gridSize + col);
+              } else if (matchLength === 4) {
+                bombCreations.push((row + Math.floor(matchLength / 2)) * gridSize + col);
+              }
+              
+              row += matchLength - 1;
+            }
+          }
+        }
+      }
+      
+      // 注: スーパー爆弾は現在の仕様では生成されない（将来の拡張用）
+      
+      return { 
+        matches: Array.from(matches), 
+        bombCreations: [...new Set(bombCreations)],
+        superBombCreations: [...new Set(superBombCreations)],
+        aiCoreCreations: [...new Set(aiCoreCreations)]
+      };
+    }
+
+    // マッチ処理（Ver3.0強化版）
+    function processMatches() {
+      const { matches, bombCreations, aiCoreCreations } = findAllMatches();
+      
+      if (matches.length === 0) {
+        combo = 0;
+        isAnimating = false;
+        return;
+      }
+      
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      
+      // 連鎖表示とサウンド
+      if (combo > 7) {
+        showCombo(combo, true);
+        speakClaude('megaChain');
+        playSound('combo');
+      } else if (combo > 2) {
+        showCombo(combo);
+        playSound('combo');
+      } else {
+        playSound('match');
+      }
+      
+      // 画面エフェクト
+      if (combo > 5) {
+        document.getElementById('screenFlash').classList.add('active');
+        setTimeout(() => {
+          document.getElementById('screenFlash').classList.remove('active');
+        }, 300);
+      }
+      
+      // マッチアニメーション
+      const cells = document.querySelectorAll('.cell');
+      matches.forEach(idx => cells[idx].classList.add('matched'));
+      
+      setTimeout(() => {
+        // AIコア生成
+        if (aiCoreCreations.length > 0) {
+          aiCoreCreations.forEach(idx => {
+            board[idx] = aiCoreSymbol;
+            coreCount++;
+          });
+          speakClaude('aiCore');
+          playSound('aicore');
+          if (!achievements.firstCore.unlocked) {
+            unlockAchievement('firstCore');
+          }
+        }
+        // 爆弾生成
+        else if (bombCreations.length > 0) {
+          bombCreations.forEach(idx => {
+            if (!aiCoreCreations.includes(idx)) {
+              board[idx] = bombSymbol;
+              bombCount++;
+            }
+          });
+          speakClaude('bombCreate');
+          playSound('bomb');
+          if (!achievements.firstBomb.unlocked) {
+            unlockAchievement('firstBomb');
+          }
+        }
+        // 連鎖/通常マッチ
+        else if (combo > 2) {
+          speakClaude('chain');
+        } else {
+          speakClaude('match');
+        }
+        
+        // マッチしたセルを削除（特別カウント）
+        matches.forEach(idx => {
+          if (!bombCreations.includes(idx) && !aiCoreCreations.includes(idx)) {
+            // シンボルカウント（ミッション用）
+            if (board[idx] === '⚡') symbolsCleared++;
+            board[idx] = null;
+          }
+        });
+        
+        // スコア計算（連鎖ボーナス付き）
+        const baseScore = matches.length * 10;
+        const comboBonus = combo > 1 ? Math.pow(2, combo - 1) : 1;
+        score += Math.floor(baseScore * comboBonus);
+        
+        updateStats();
+        updateRank();
+        dropPieces();
+        
+        setTimeout(() => {
+          const newMatches = findAllMatches();
+          if (newMatches.matches.length > 0) {
+            processMatches();
+          } else {
+            combo = 0;
+            isAnimating = false;
+          }
+        }, 500);
+      }, 500);
+    }
+
+    // 連鎖表示（強化版）
+    function showCombo(comboCount, isMega = false) {
+      const comboDisplay = document.createElement('div');
+      comboDisplay.className = 'combo-display';
+      if (isMega) comboDisplay.classList.add('mega');
+      comboDisplay.textContent = `${comboCount} COMBO!`;
+      document.querySelector('.game-board').appendChild(comboDisplay);
+      
+      setTimeout(() => {
+        comboDisplay.remove();
+      }, 1000);
+    }
+
+    // 爆弾爆発（強化版）
+    function detonateBomb(bombIndex, isSuper = false) {
+      if (isAnimating) return;
+      isAnimating = true;
+      
+      const row = Math.floor(bombIndex / gridSize);
+      const col = bombIndex % gridSize;
+      const toExplode = [];
+      
+      if (isSuper) {
+        // スーパー爆弾は十字型
+        for (let i = 0; i < gridSize; i++) {
+          toExplode.push(row * gridSize + i);
+          toExplode.push(i * gridSize + col);
+        }
+      } else {
+        // 通常爆弾は3x3
+        for (let r = Math.max(0, row - 1); r <= Math.min(gridSize - 1, row + 1); r++) {
+          for (let c = Math.max(0, col - 1); c <= Math.min(gridSize - 1, col + 1); c++) {
+            toExplode.push(r * gridSize + c);
+          }
+        }
+      }
+      
+      const uniqueExplode = [...new Set(toExplode)];
+      
+      // 爆発アニメーション
+      const cells = document.querySelectorAll('.cell');
+      uniqueExplode.forEach(idx => cells[idx].classList.add('exploding'));
+      
+      speakClaude(isSuper ? 'superBomb' : 'bombDetonate');
+      playSound('explode');
+      bombCount--;
+      
+      // 画面シェイク
+      document.querySelector('.game-container').style.animation = 'shake 0.5s';
+      setTimeout(() => {
+        document.querySelector('.game-container').style.animation = '';
+      }, 500);
+      
+      setTimeout(() => {
+        uniqueExplode.forEach(idx => {
+          if (board[idx] === '⚡') symbolsCleared++;
+          board[idx] = null;
+        });
+        score += uniqueExplode.length * 20;
+        updateStats();
+        updateRank();
+        dropPieces();
+        
+        setTimeout(() => {
+          const newMatches = findAllMatches();
+          if (newMatches.matches.length > 0) {
+            processMatches();
+          } else {
+            isAnimating = false;
+          }
+        }, 500);
+      }, 600);
+    }
+
+    // ピース落下
+    function dropPieces() {
+      for (let col = 0; col < gridSize; col++) {
+        let writePos = gridSize - 1;
+        
+        for (let row = gridSize - 1; row >= 0; row--) {
+          const idx = row * gridSize + col;
+          if (board[idx] !== null) {
+            if (row !== writePos) {
+              board[writePos * gridSize + col] = board[idx];
+              board[idx] = null;
+            }
+            writePos--;
+          }
+        }
+        
+        for (let row = writePos; row >= 0; row--) {
+          board[row * gridSize + col] = symbols[Math.floor(Math.random() * symbols.length)];
+        }
+      }
+      
+      renderBoard();
+    }
+
+    // 画面シェイクアニメーション
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // 初期化
+    initAudio();
+    initGame();
+  </script>
+</body>
+</html>
